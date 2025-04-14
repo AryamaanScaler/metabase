@@ -451,6 +451,46 @@ describe("scenarios > dashboard > visualizer", () => {
       });
     });
 
+    it("should work correctly when built from a non-cartesian chart", () => {
+      H.createQuestion(PIVOT_TABLE_CARD);
+
+      H.visitDashboard(ORDERS_DASHBOARD_ID);
+      H.editDashboard();
+      H.openQuestionsSidebar();
+      clickVisualizeAnotherWay(PIVOT_TABLE_CARD.name);
+
+      H.modal().within(() => {
+        dataSourceColumn(PIVOT_TABLE_CARD.name, "Product → Category")
+          .findByLabelText("Remove")
+          .click();
+        dataSourceColumn(PIVOT_TABLE_CARD.name, "Average of Quantity")
+          .findByLabelText("Remove")
+          .click();
+        dataSourceColumn(PIVOT_TABLE_CARD.name, "pivot-grouping")
+          .findByLabelText("Remove")
+          .click();
+
+        cy.button("Add more data").click();
+        cy.findByPlaceholderText("Search for something").type("created");
+        addDataSource(ORDERS_COUNT_BY_CREATED_AT.name);
+        cy.button("Done").click();
+
+        verticalWell().within(() => {
+          cy.findByText("Count").should("exist");
+          cy.findByText(`Count (${ORDERS_COUNT_BY_CREATED_AT.name})`).should(
+            "exist",
+          );
+          cy.findAllByTestId("well-item").should("have.length", 2);
+        });
+        horizontalWell().within(() => {
+          cy.findByText("Created At: Year").should("exist");
+          cy.findAllByTestId("well-item").should("have.length", 1);
+        });
+
+        chartLegendItems().should("have.length", 2);
+      });
+    });
+
     describe("timeseries breakout", () => {
       it("should automatically use new columns whenever possible", () => {
         const Q1_NAME = ORDERS_COUNT_BY_CREATED_AT.name;
@@ -541,7 +581,7 @@ describe("scenarios > dashboard > visualizer", () => {
 
           // Remove 2nd data source
           removeDataSource(Q2_NAME);
-          dataManager().within(() => {
+          dataImporter().within(() => {
             cy.findByText(Q2_NAME).should("not.exist");
             cy.findAllByText("Count").should("have.length", 1);
             cy.findAllByText("Created At: Month").should("have.length", 1);
@@ -756,7 +796,7 @@ describe("scenarios > dashboard > visualizer", () => {
 
           // Remove 2nd data source
           removeDataSource(Q2_NAME);
-          dataManager().within(() => {
+          dataImporter().within(() => {
             cy.findByText(Q2_NAME).should("not.exist");
             cy.findAllByText("Count").should("have.length", 1);
             cy.findAllByText("Category").should("not.exist");
@@ -942,7 +982,7 @@ describe("scenarios > dashboard > visualizer", () => {
 
         // Remove a data source
         removeDataSource(VIEWS_COLUMN_CARD.name);
-        dataManager().within(() => {
+        dataImporter().within(() => {
           cy.findByText(VIEWS_COLUMN_CARD.name).should("not.exist");
           cy.findByText("Views").should("not.exist");
         });
@@ -1228,6 +1268,19 @@ const TREND_CARD = {
   },
 };
 
+const PIVOT_TABLE_CARD = {
+  name: "Pivot table",
+  display: "pivot",
+  query: {
+    aggregation: [["count"], ["avg", ["field", ORDERS.QUANTITY, null]]],
+    breakout: [
+      ["field", ORDERS.CREATED_AT, { "temporal-unit": "year" }],
+      ["field", PRODUCTS.CATEGORY, { "source-field": ORDERS.PRODUCT_ID }],
+    ],
+    "source-table": ORDERS_ID,
+  },
+};
+
 function clickVisualizeAnotherWay(name) {
   H.sidebar().within(() => {
     cy.findByRole("menuitem", { name })
@@ -1237,14 +1290,23 @@ function clickVisualizeAnotherWay(name) {
   });
 }
 
-function dataManager() {
-  return cy.findByTestId("visualizer-data-manager");
+function dataImporter() {
+  return cy.findByTestId("visualizer-data-importer");
 }
 
 function dataSource(dataSourceName) {
-  return dataManager()
+  return dataImporter()
     .findByText(dataSourceName)
     .parents("[data-testid='data-source-list-item']");
+}
+
+function addDataSource(dataSourceName) {
+  dataImporter()
+    .findByText(dataSourceName)
+    .parent()
+    .findByTestId("add-dataset-button")
+    .click();
+  cy.wait("@cardQuery");
 }
 
 function removeDataSource(dataSourceName) {
