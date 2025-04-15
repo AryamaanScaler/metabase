@@ -450,11 +450,13 @@ export const PLUGIN_REDUCERS: {
   sandboxingPlugin: any;
   shared: any;
   metabotPlugin: any;
+  aiAnalysisPlugin: any;
 } = {
   applicationPermissionsPlugin: () => null,
   sandboxingPlugin: () => null,
   shared: () => null,
   metabotPlugin: () => null,
+  aiAnalysisPlugin: () => null,
 };
 
 export const PLUGIN_ADVANCED_PERMISSIONS = {
@@ -654,6 +656,18 @@ export type PluginAiSqlGeneration = {
 
 export const PLUGIN_AI_SQL_GENERATION: PluginAiSqlGeneration = {
   GenerateSqlQueryButton: PluginPlaceholder,
+};
+
+export type PluginAiAnalysis = {
+  ExplainChartButton: ComponentType<any>;
+  ExplainDashboardButton: ComponentType<any>;
+  ExplainSidebar: ComponentType<any>;
+};
+
+export const PLUGIN_AI_ANALYSIS: PluginAiAnalysis = {
+  ExplainChartButton: PluginPlaceholder,
+  ExplainDashboardButton: PluginPlaceholder,
+  ExplainSidebar: PluginPlaceholder,
 };
 
 export const PLUGIN_METABOT = {

@@ -7,6 +7,7 @@ import CS from "metabase/css/core/index.css";
 import { QuestionSharingMenu } from "metabase/embedding/components/SharingMenu";
 import { SERVER_ERROR_TYPES } from "metabase/lib/errors";
 import MetabaseSettings from "metabase/lib/settings";
+import { PLUGIN_AI_ANALYSIS } from "metabase/plugins";
 import RunButtonWithTooltip from "metabase/query_builder/components/RunButtonWithTooltip";
 import { canExploreResults } from "metabase/query_builder/components/view/ViewHeader/utils";
 import type { QueryModalType } from "metabase/query_builder/constants";
@@ -209,6 +210,7 @@ export function ViewTitleHeaderRightSide({
         </Box>
       )}
       {!isShowingNotebook && <QuestionSharingMenu question={question} />}
+      <PLUGIN_AI_ANALYSIS.ExplainChartButton />
       {isSaved && (
         <QuestionActions
           question={question}
