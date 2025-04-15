@@ -3,6 +3,7 @@
   (:require
    [clojure.data :as data]
    [compojure.core :refer [DELETE GET POST PUT]]
+   [clojure.tools.logging :as log]
    [honey.sql.helpers :as sql.helpers]
    [java-time.api :as t]
    [malli.core :as mc]
@@ -294,6 +295,7 @@
       (api/check
        (t2/exists? User :id user_id :is_superuser false)
        [400 (tru "Admin cant be a group manager.")]))
+    (log/debug "PERMISSION_MEMBERSHIP_CREATED : AUTHOR: %s : USER_AFFECTED : %s : GROUP : %s" (api/*current-user-id*) (user_id) (group_id))
     (t2/insert! PermissionsGroupMembership
                 :group_id         group_id
                 :user_id          user_id
@@ -338,6 +340,7 @@
   (let [membership (t2/select-one PermissionsGroupMembership :id id)]
     (api/check-404 membership)
     (validation/check-manager-of-group (:group_id membership))
+    (log/debug "PERMISSION_MEMBERSHIP_REMOVED : AUTHOR: %s : USER_AFFECTED : %s : GROUP : %s" (api/*current-user-id*) (:user_id membership) (:group_id membership))
     (t2/delete! PermissionsGroupMembership :id id)
     api/generic-204-no-content))
 
